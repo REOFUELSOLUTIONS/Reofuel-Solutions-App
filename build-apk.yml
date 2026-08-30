@@ -1,0 +1,40 @@
+name: Build Reofuel APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+          cache-provider: basic
+
+      - name: Extract Reofuel project
+        run: |
+          unzip -q Reofuel_Solutions_Android_V3_Source_With_Logo.zip -d build-src
+          test -f build-src/ReofuelAndroid/build.gradle
+          test -f build-src/ReofuelAndroid/settings.gradle
+
+      - name: Build debug APK
+        working-directory: build-src/ReofuelAndroid
+        run: gradle --no-daemon assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Reofuel-Solutions-APK
+          path: build-src/ReofuelAndroid/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
